@@ -1,7 +1,5 @@
-# Environment secrets
-.env
 
-# Python
+.env
 .venv/
 venv/
 __pycache__/
@@ -12,13 +10,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-
-# Node / frontend
 node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
-
-# macOS and editors
 .DS_Store
 .vscode/
