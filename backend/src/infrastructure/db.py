@@ -1,7 +1,16 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-
 from infrastructure.settings import settings
+from collections.abc import Generator
+from sqlalchemy.orm import Session
+
+
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 engine = create_engine(settings.database_url, pool_pre_ping=True)

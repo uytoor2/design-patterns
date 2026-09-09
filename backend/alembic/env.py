@@ -5,10 +5,14 @@ from alembic import context
 
 import sys
 from pathlib import Path
+from infrastructure.persistence.base import Base
+from infrastructure.persistence import models 
+
+
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from infrastructure.settings import settings  # noqa
+from infrastructure.settings import settings  
 
 config = context.config
 
@@ -17,7 +21,7 @@ if config.config_file_name is not None:
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
