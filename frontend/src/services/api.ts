@@ -1,11 +1,17 @@
-export type HealthResponse = { status: string; db: "ok" | "fail" };
+export type HealthResponse = {
+  status: string;
+  db: "ok" | "fail";
+};
 
-const API_BASE = "/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export async function fetchHealth(): Promise<HealthResponse> {
-  const response = await fetch(`${API_BASE}/health`);
+  const response = await fetch(`${API_BASE_URL}/api/health`);
+
   if (!response.ok) {
-    throw new Error("Network response was not ok");
+    throw new Error(`Health request failed: ${response.status}`);
   }
-  return response.json();
+
+  return response.json() as Promise<HealthResponse>;
 }
