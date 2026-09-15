@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from scalar_fastapi import get_scalar_api_reference
-
+from interfaces.api.sensors import router as sensors_router
 from infrastructure.settings import settings
 from interfaces.api.health import router as health_router
 
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router, prefix="/api")
+app.include_router(sensors_router)
 
 
 @app.get("/")
