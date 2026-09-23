@@ -4,7 +4,7 @@ from scalar_fastapi import get_scalar_api_reference
 from interfaces.api.sensors import router as sensors_router
 from infrastructure.settings import settings
 from interfaces.api.health import router as health_router
-
+from interfaces.api import devices
 
 app = FastAPI(
     title="Smart Greenhouse API",
@@ -25,6 +25,7 @@ app.add_middleware(
 
 app.include_router(health_router, prefix="/api")
 app.include_router(sensors_router)
+app.include_router(devices.router)
 
 
 @app.get("/")

@@ -12,6 +12,16 @@ export type SensorDto = {
 
 export type SensorType = "moisture" | "light";
 
+export type DeviceFamily = "simulation" | "edge";
+
+export type DeviceDto = {
+  id: string;
+  device_type: string;
+  role: "sensor" | "actuator";
+  device_family: DeviceFamily;
+  display_name: string;
+  default_config: Record<string, unknown>;
+};
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
