@@ -2,10 +2,12 @@ from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from infrastructure.persistence.base import Base
-from sqlalchemy import DateTime, ForeignKey, Index, Numeric, String, text, Boolean, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Numeric, String, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+
 class ReadingRow(Base):
     __tablename__ = "sensor_readings"
 
@@ -33,6 +35,7 @@ class ReadingRow(Base):
         Index("ix_sensor_readings_device_recorded_at", "device_id", text("recorded_at DESC")),
     )
 
+
 class LocationRow(Base):
     __tablename__ = "locations"
 
@@ -48,6 +51,9 @@ class LocationRow(Base):
 
     zones: Mapped[list["ZoneRow"]] = relationship(
         "ZoneRow", back_populates="location", cascade="all, delete-orphan"
+    )
+    automation_rule: Mapped["AutomationRuleRow | None"] = relationship(
+        "AutomationRuleRow", back_populates="location", uselist=False, cascade="all, delete-orphan"
     )
 
 
@@ -75,7 +81,6 @@ class ZoneRow(Base):
     )
 
 
-# Update existing DeviceRow
 class DeviceRow(Base):
     __tablename__ = "devices"
 
@@ -89,10 +94,16 @@ class DeviceRow(Base):
     default_config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
     zone_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("zones.id", ondelete="SET NULL"), nullable=True
+        PG_UUID(as_uuid=True),
+        ForeignKey("zones.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     location_id: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), ForeignKey("locations.id", ondelete="SET NULL"), nullable=True
+        PG_UUID(as_uuid=True),
+        ForeignKey("locations.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     # Phase 5 Additions
@@ -102,9 +113,29 @@ class DeviceRow(Base):
     tracking_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="true"
     )
-    location_id: Mapped[UUID | None] = mapped_column(
+
+
+# Phase 6 Addition: Automation Rules Table
+class AutomationRuleRow(Base):
+    __tablename__ = "automation_rules"
+
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    location_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
-        ForeignKey("locations.id", ondelete="SET NULL"),
-        nullable=True,
+        ForeignKey("locations.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
         index=True,
     )
+    strategy_key: Mapped[str] = mapped_column(String(32), nullable=False, default="conservative")
+    parameters: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    location: Mapped["LocationRow"] = relationship("LocationRow", back_populates="automation_rule")
