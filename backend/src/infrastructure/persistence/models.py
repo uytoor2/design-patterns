@@ -115,7 +115,6 @@ class DeviceRow(Base):
     )
 
 
-# Phase 6 Addition: Automation Rules Table
 class AutomationRuleRow(Base):
     __tablename__ = "automation_rules"
 
@@ -139,3 +138,20 @@ class AutomationRuleRow(Base):
     )
 
     location: Mapped["LocationRow"] = relationship("LocationRow", back_populates="automation_rule")
+class ActuatorStateRow(Base):
+    __tablename__ = "actuator_states"
+
+    device_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("devices.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    state: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    device: Mapped["DeviceRow"] = relationship("DeviceRow")

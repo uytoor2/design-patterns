@@ -6,6 +6,7 @@ from infrastructure.settings import settings
 from interfaces.api.health import router as health_router
 from interfaces.api import devices
 from interfaces.api.automation import router as automation_router
+from interfaces.api.overview import router as overview_router
 
 app = FastAPI(
     title="Smart Greenhouse API",
@@ -14,6 +15,7 @@ app = FastAPI(
     redoc_url=None,
 )
 app.include_router(automation_router)
+app.include_router(overview_router)
 
 
 origins = [origin.strip() for origin in settings.cors_origins.split(",")]

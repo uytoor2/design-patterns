@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from uuid import UUID
 from typing import Literal
 
-from application.devices.dto import DeviceDto
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
+from application.devices.dto import DeviceDto, TransitionRequestDto
 from application.devices.mappers import device_to_dto
 from application.devices.family_service import DeviceFamilyService
+from application.devices.state_service import ActuatorStateService
+from domain.actuators.errors import IllegalTransitionError
 from infrastructure.persistence.device_repository import DeviceRepository
 from infrastructure.db import get_db
 
@@ -40,3 +44,21 @@ def list_devices(
 ):
     devices = service.list_devices(family=family, role=role)
     return [device_to_dto(d) for d in devices]
+
+
+@router.post("/{device_id}/transition", status_code=status.HTTP_200_OK)
+def transition_actuator_state(
+    device_id: UUID, dto: TransitionRequestDto, db: Session = Depends(get_db)
+):
+    service = ActuatorStateService(db)
+    try:
+        context = service.transition_state(device_id, dto.target)
+        return {
+            "device_id": str(device_id),
+            "state": context.current_state_name,
+            "allowed_commands": context.allowed_commands,
+        }
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    except IllegalTransitionError as err:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(err))
