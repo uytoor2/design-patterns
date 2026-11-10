@@ -2,11 +2,10 @@ from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from infrastructure.persistence.base import Base
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Numeric, String, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Numeric, String, text, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 
 class ReadingRow(Base):
     __tablename__ = "sensor_readings"
@@ -151,6 +150,29 @@ class ActuatorStateRow(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    device: Mapped["DeviceRow"] = relationship("DeviceRow")
+
+class ActuatorExecutionLogRow(Base):
+    __tablename__ = "actuator_execution_log"
+
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
+    )
+    device_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("devices.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    policy_applied: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 

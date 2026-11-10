@@ -7,6 +7,9 @@ from interfaces.api.health import router as health_router
 from interfaces.api import devices
 from interfaces.api.automation import router as automation_router
 from interfaces.api.overview import router as overview_router
+from interfaces.api.actuators import router as actuators_router
+
+app.include_router(actuators_router)
 
 app = FastAPI(
     title="Smart Greenhouse API",

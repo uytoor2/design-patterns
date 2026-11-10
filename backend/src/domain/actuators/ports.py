@@ -5,5 +5,5 @@ from uuid import UUID
 class ActuatorPort(ABC):
     @abstractmethod
     def apply(self, device_id: UUID, command: str, payload: dict) -> None:
-        """Executes a command on the target actuator."""
+        """Applies a command payload to an actuator device."""
         pass
